@@ -13,10 +13,7 @@ def load_csv(filename):
         return pd.read_csv(f, names=range(num_cols), skiprows=[0])
 
 
-if __name__ == '__main__':
-    df = load_csv("Data/huawei.csv")
-
-    writer = pd.ExcelWriter("output.xlsx", engine="xlsxwriter")
+def generate_sheet1(writer, df):
     df[6] = df[6].str.replace("%", "")  # remove the % symbol on compliance column
     df[6] = (df[6].astype(float)) / 100  # convert to float & divide by 100
 
@@ -25,23 +22,28 @@ if __name__ == '__main__':
 
     # Get the xlsxwriter workbook and worksheet objects.
     workbook = writer.book
-    worksheet = writer.sheets["Audit Data"]
+    worksheet1 = writer.sheets["Audit Data"]
 
     # Convert compliance to %
     percent_format = workbook.add_format({"num_format": "0.00%"})
-    worksheet.set_column(6, 6, None, percent_format)
+    worksheet1.set_column(6, 6, None, percent_format)
 
     # Add headings
     fill_format = workbook.add_format({"bg_color": "yellow"})
-    # worksheet.set_row(0, None, fill_format)
-    worksheet.write_string("A1", "HOST NAME", cell_format=fill_format)
-    worksheet.write_string("B1", "TOTAL PORTS", cell_format=fill_format)
-    worksheet.write_string("C1", "XGE PORTS", cell_format=fill_format)
-    worksheet.write_string("D1", "COMPLIANT PORTS", cell_format=fill_format)
-    worksheet.write_string("E1", "NON-COMPLIANT PORTS", cell_format=fill_format)
-    worksheet.write_string("F1", "NON-COMPLIANT OPEN PORTS", cell_format=fill_format)
-    worksheet.write_string("G1", "COMPLIANCE %", cell_format=fill_format)
-    worksheet.write_string("H1", "PHYSICAL LOCATION", cell_format=fill_format)
-    worksheet.write_string("I1", "COUNTRY", cell_format=fill_format)
 
-    writer.close()
+    worksheet1.write_string("A1", "HOST NAME", cell_format=fill_format)
+    worksheet1.write_string("B1", "TOTAL PORTS", cell_format=fill_format)
+    worksheet1.write_string("C1", "XGE PORTS", cell_format=fill_format)
+    worksheet1.write_string("D1", "COMPLIANT PORTS", cell_format=fill_format)
+    worksheet1.write_string("E1", "NON-COMPLIANT PORTS", cell_format=fill_format)
+    worksheet1.write_string("F1", "NON-COMPLIANT OPEN PORTS", cell_format=fill_format)
+    worksheet1.write_string("G1", "COMPLIANCE %", cell_format=fill_format)
+    worksheet1.write_string("H1", "PHYSICAL LOCATION", cell_format=fill_format)
+    worksheet1.write_string("I1", "COUNTRY", cell_format=fill_format)
+
+
+if __name__ == '__main__':
+    dataframe = load_csv("Data/huawei.csv")
+    wr = pd.ExcelWriter("output.xlsx", engine="xlsxwriter")
+    generate_sheet1(wr, dataframe)
+    wr.close()
