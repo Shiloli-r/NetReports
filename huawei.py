@@ -71,7 +71,48 @@ def generate_sheet3(writer, df):
 
 
 def generate_sheet4(writer, df):
-    pass
+    """
+    Generates sheet 4 (compliance %). A bunch of Excel formulas
+    :param writer:
+    :param df:
+    :return:
+    """
+    no_of_hosts = df.shape[0]
+
+    # Get the xlsxwriter workbook and worksheet objects.
+    workbook = writer.book
+    worksheet = workbook.add_worksheet('Compliance %')
+    fill_format = workbook.add_format({"bg_color": "yellow"})
+    bold_format = workbook.add_format({'bold': True})
+
+    worksheet.write_string("B1", "KE", cell_format=fill_format)
+    worksheet.write_string("B8", "KE", cell_format=fill_format)
+    worksheet.write_string("C1", "Total", cell_format=fill_format)
+
+    worksheet.write_string("A2", "Total Number of switches", cell_format=bold_format)
+
+    # Total number of switches
+    worksheet.write_formula("B2", "=COUNTIF('Audit Data'!I2: I{}, \"Kenya\")".format(no_of_hosts))
+    worksheet.write_number("C2", no_of_hosts-1)
+
+    # fully compliant
+    worksheet.write_formula("C3", "=COUNTIF('Audit Data'!G2:G{}, \"100%\")".format(no_of_hosts))
+    worksheet.write_formula("B3", "=COUNTIFS('Audit Data'!G2:G{}, \"100%\", 'Audit Data'!I2:I{}, \"Kenya\")".format(no_of_hosts, no_of_hosts))
+
+    # partially compliant
+    worksheet.write_formula("B4", "=B2-B3")
+    worksheet.write_formula("C4", "=C2-C3")
+
+    # fully non-compliant
+    worksheet.write_formula("B5", "=COUNTIFS('Audit Data'!G2:G{}, \"0%\", 'Audit Data'!I2:I{}, \"Kenya\")".format(no_of_hosts, no_of_hosts))
+    worksheet.write_formula("C5", "=COUNTIF('Audit Data'!G2:G{}, \"0%\")".format(no_of_hosts))
+
+    worksheet.write_string("A3", "No. of Switches that are fully compliant", cell_format=bold_format)
+    worksheet.write_string("A4", "No. of Switches that are partially compliant", cell_format=bold_format)
+    worksheet.write_string("A5", "No. of Switches that are fully non-compliant", cell_format=bold_format)
+
+    worksheet.write_string("A9", "mab is configured", cell_format=bold_format)
+    worksheet.write_string("A10", "authentication open is configured", cell_format=bold_format)
 
 
 if __name__ == '__main__':
