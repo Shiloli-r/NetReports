@@ -14,10 +14,6 @@ def format_percent_and_headings(writer, sheet_name):
     workbook = writer.book
     worksheet = writer.sheets[sheet_name]
 
-    # Convert compliance to %
-    percent_format = workbook.add_format({"num_format": "0.00%"})
-    worksheet.set_column(6, 6, None, percent_format)
-
     # Add headings
     yellow_fill_format = workbook.add_format({"bg_color": "yellow"})
 
@@ -30,6 +26,17 @@ def format_percent_and_headings(writer, sheet_name):
     worksheet.write_string("G1", "COMPLIANCE %", cell_format=yellow_fill_format)
     worksheet.write_string("H1", "PHYSICAL LOCATION", cell_format=yellow_fill_format)
     worksheet.write_string("I1", "COUNTRY", cell_format=yellow_fill_format)
+
+    # Convert compliance to %
+    percent_format = workbook.add_format({"num_format": "0.00%"})
+    worksheet.set_column(6, 6, None, percent_format)
+
+
+def adjust_col_sizes(df, writer, sheet_name):
+    for column in df:
+        column_length = max(df[column].astype(str).map(len).max(), 20)
+        col_idx = df.columns.get_loc(column)
+        writer.sheets[sheet_name].set_column(col_idx, col_idx, column_length)
 
 
 def generate_sheet1(writer, df):
@@ -46,6 +53,7 @@ def generate_sheet1(writer, df):
     df.to_excel(writer, index=False, header=False, sheet_name='Audit Data', startrow=1)
 
     # Add required formatting
+    adjust_col_sizes(df, writer, "Audit Data")
     format_percent_and_headings(wr, "Audit Data")
     return df
 
@@ -100,6 +108,7 @@ def generate_sheet2(writer, df):
                                   'value': 'interface',
                                   'format': interface_fill_format})
     worksheet.set_row(6, None, percent_format)
+    adjust_col_sizes(df, writer, "Non-Compliance")
 
 
 def generate_sheet3(writer, df):
@@ -114,6 +123,7 @@ def generate_sheet3(writer, df):
     df.to_excel(writer, index=False, header=False, sheet_name='Compliance', startrow=1)
 
     # format percentages and add column headers
+    adjust_col_sizes(df, writer, "Compliance")
     format_percent_and_headings(wr, "Compliance")
 
 
@@ -163,13 +173,14 @@ def generate_sheet4(writer, df):
 
     worksheet.write_string("A9", "mab is configured", cell_format=bold_format)
     worksheet.write_string("A10", "authentication open is configured", cell_format=bold_format)
+    adjust_col_sizes(df, writer, "Compliance %")
 
 
 if __name__ == '__main__':
     # generate filename to be expected
     today = date.today()
-    filename = today.strftime("%Y%m%d_audit_row_hw_sw.csv")
-
+    # filename = today.strftime("%Y%m%d_audit_row_hw_sw.csv")
+    filename = "Data/20230817_audit_row_hw_sw.csv"
     # load data
     dataframe = load_csv(filename)
     wr = pd.ExcelWriter("Huawei NAC Report {}.xlsx".format(today), engine="xlsxwriter")
