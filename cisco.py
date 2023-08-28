@@ -177,9 +177,9 @@ def adjust_col_sizes(df, writer, sheet_name):
 
 def generate_sheet1(writer, df):
     df.to_excel(writer, index=False, header=False, startrow=1, sheet_name='Audit Data')
-    format_headings_and_percentages(wr, 'Audit Data')
 
     adjust_col_sizes(df, writer, 'Audit Data')
+    format_headings_and_percentages(wr, 'Audit Data')
 
 
 def generate_sheet2(writer, df):
@@ -270,12 +270,12 @@ def generate_sheet3(writer, df):
     worksheet.write_formula("H{}".format(last_row + 1), "=SUM(H2:H{})".format(last_row), cell_format=yellow_fill_format)
 
     percent_format = workbook.add_format({"num_format": "0.00%"})
-    worksheet.set_column(8, 8, None, percent_format)
     worksheet.write_formula("I{}".format(last_row + 1),
                             "=(F{}+G{})/E{}".format(last_row + 1, last_row + 1, last_row + 1),
                             cell_format=percent_format)
 
     adjust_col_sizes(df, writer, 'Compliance')
+    worksheet.set_column(8, 8, None, percent_format)
 
 
 def generate_sheet4(writer, df):
