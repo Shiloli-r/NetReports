@@ -179,8 +179,7 @@ def generate_sheet4(writer, df):
 if __name__ == '__main__':
     # generate filename to be expected
     today = date.today()
-    # filename = today.strftime("%Y%m%d_audit_row_hw_sw.csv")
-    filename = "Data/20230817_audit_row_hw_sw.csv"
+    filename = today.strftime("%Y%m%d_audit_row_hw_sw.csv")
     # load data
     dataframe = load_csv(filename)
     wr = pd.ExcelWriter("Huawei NAC Report {}.xlsx".format(today), engine="xlsxwriter")
