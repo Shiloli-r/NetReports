@@ -1,4 +1,5 @@
 import pandas as pd
+from datetime import date
 
 
 def load_csv(filename):
@@ -165,14 +166,20 @@ def generate_sheet4(writer, df):
 
 
 if __name__ == '__main__':
-    dataframe = load_csv("Data/huawei.csv")
-    wr = pd.ExcelWriter("output.xlsx", engine="xlsxwriter")
+    # generate filename to be expected
+    today = date.today()
+    filename = today.strftime("%Y%m%d_audit_row_hw_sw.csv")
+
+    # load data
+    dataframe = load_csv(filename)
+    wr = pd.ExcelWriter("Huawei NAC Report {}.xlsx".format(today), engine="xlsxwriter")
 
     # Generate the worksheets
     raw_df = generate_sheet1(wr, dataframe)
 
     generate_sheet2(wr, raw_df)
     generate_sheet3(wr, dataframe)
+    dataframe = load_csv(filename)  # reload df
     generate_sheet4(wr, dataframe)
 
     wr.close()
