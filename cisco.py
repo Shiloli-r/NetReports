@@ -376,7 +376,7 @@ if __name__ == '__main__':
     dataframe = pd.read_excel('Data/cisco.xlsx')
 
     # Add 'Compliance % column' to dataframe
-    wr = pd.ExcelWriter("output.xlsx", engine="xlsxwriter")
+    wr = pd.ExcelWriter("NAC analysis {}.xlsx".format(today.strftime('%d %m %Y')), engine="xlsxwriter")
     compliance = [(dataframe['TRUNK PORTS'][x] + dataframe['COMPLIANT PORTS'][x]) / dataframe['TOTAL PORTS'][x] for x in
                   range(dataframe.shape[0])]
     dataframe.insert(5, "Compliance %", compliance)
