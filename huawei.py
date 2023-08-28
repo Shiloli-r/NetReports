@@ -20,8 +20,8 @@ if __name__ == '__main__':
     df[6] = df[6].str.replace("%", "")  # remove the % symbol on compliance column
     df[6] = (df[6].astype(float)) / 100  # convert to float & divide by 100
 
-    # write to the first sheet, i.e. Audit Data
-    df.to_excel(writer, index=False, header=False, sheet_name='Audit Data')
+    # write to the first sheet, i.e. Audit Data - Start at row 1, insert headings at row 0 later
+    df.to_excel(writer, index=False, header=False, sheet_name='Audit Data', startrow=1)
 
     # Get the xlsxwriter workbook and worksheet objects.
     workbook = writer.book
@@ -30,5 +30,18 @@ if __name__ == '__main__':
     # Convert compliance to %
     percent_format = workbook.add_format({"num_format": "0.00%"})
     worksheet.set_column(6, 6, None, percent_format)
+
+    # Add headings
+    fill_format = workbook.add_format({"bg_color": "yellow"})
+    # worksheet.set_row(0, None, fill_format)
+    worksheet.write_string("A1", "HOST NAME", cell_format=fill_format)
+    worksheet.write_string("B1", "TOTAL PORTS", cell_format=fill_format)
+    worksheet.write_string("C1", "XGE PORTS", cell_format=fill_format)
+    worksheet.write_string("D1", "COMPLIANT PORTS", cell_format=fill_format)
+    worksheet.write_string("E1", "NON-COMPLIANT PORTS", cell_format=fill_format)
+    worksheet.write_string("F1", "NON-COMPLIANT OPEN PORTS", cell_format=fill_format)
+    worksheet.write_string("G1", "COMPLIANCE %", cell_format=fill_format)
+    worksheet.write_string("H1", "PHYSICAL LOCATION", cell_format=fill_format)
+    worksheet.write_string("I1", "COUNTRY", cell_format=fill_format)
 
     writer.close()
