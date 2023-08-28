@@ -1,5 +1,4 @@
 import pandas as pd
-from openpyxl import Workbook
 
 
 def load_csv(filename):
@@ -19,17 +18,17 @@ def format_percent_and_headings(writer, sheet_name):
     worksheet.set_column(6, 6, None, percent_format)
 
     # Add headings
-    fill_format = workbook.add_format({"bg_color": "yellow"})
+    yellow_fill_format = workbook.add_format({"bg_color": "yellow"})
 
-    worksheet.write_string("A1", "HOST NAME", cell_format=fill_format)
-    worksheet.write_string("B1", "TOTAL PORTS", cell_format=fill_format)
-    worksheet.write_string("C1", "XGE PORTS", cell_format=fill_format)
-    worksheet.write_string("D1", "COMPLIANT PORTS", cell_format=fill_format)
-    worksheet.write_string("E1", "NON-COMPLIANT PORTS", cell_format=fill_format)
-    worksheet.write_string("F1", "NON-COMPLIANT OPEN PORTS", cell_format=fill_format)
-    worksheet.write_string("G1", "COMPLIANCE %", cell_format=fill_format)
-    worksheet.write_string("H1", "PHYSICAL LOCATION", cell_format=fill_format)
-    worksheet.write_string("I1", "COUNTRY", cell_format=fill_format)
+    worksheet.write_string("A1", "HOST NAME", cell_format=yellow_fill_format)
+    worksheet.write_string("B1", "TOTAL PORTS", cell_format=yellow_fill_format)
+    worksheet.write_string("C1", "XGE PORTS", cell_format=yellow_fill_format)
+    worksheet.write_string("D1", "COMPLIANT PORTS", cell_format=yellow_fill_format)
+    worksheet.write_string("E1", "NON-COMPLIANT PORTS", cell_format=yellow_fill_format)
+    worksheet.write_string("F1", "NON-COMPLIANT OPEN PORTS", cell_format=yellow_fill_format)
+    worksheet.write_string("G1", "COMPLIANCE %", cell_format=yellow_fill_format)
+    worksheet.write_string("H1", "PHYSICAL LOCATION", cell_format=yellow_fill_format)
+    worksheet.write_string("I1", "COUNTRY", cell_format=yellow_fill_format)
 
 
 def generate_sheet1(writer, df):
@@ -51,8 +50,55 @@ def generate_sheet1(writer, df):
 
 
 def generate_sheet2(writer, df):
+    # Filter out rows where compliance == 100%
+    for num, x in enumerate(df[6] == 1):
+        if x:
+            df = df.drop(num)
+
+    # drop last row (it's a summary)
+    df.drop(df.tail(1).index, inplace=True)
+
+    # Transpose the data
+    df = df.transpose()
+
     # write to the second sheet, i.e. Non-Compliance
-    df.to_excel(writer, index=False, header=False, sheet_name='Non-Compliance')
+    df.to_excel(writer, index=False, header=False, sheet_name='Non-Compliance', startcol=1)
+
+    # --- Transpose the data to the Excel
+    # Get the xlsxwriter workbook and worksheet objects.
+    workbook = writer.book
+    worksheet = writer.sheets["Non-Compliance"]
+
+    # Convert compliance to %
+    percent_format = workbook.add_format({"num_format": "0.00%"})
+
+    # Add headings
+    yellow_fill_format = workbook.add_format({"bg_color": "#eafa73"})
+    non_compliant_fill_format = workbook.add_format({"bg_color": "#fca4a4", "font": "red"})
+    interface_fill_format = workbook.add_format({"bg_color": "#5ff569"})
+
+    worksheet.write_string("A1", "HOST NAME", cell_format=yellow_fill_format)
+    worksheet.write_string("A2", "TOTAL PORTS", cell_format=yellow_fill_format)
+    worksheet.write_string("A3", "XGE PORTS", cell_format=yellow_fill_format)
+    worksheet.write_string("A4", "COMPLIANT PORTS", cell_format=yellow_fill_format)
+    worksheet.write_string("A5", "NON-COMPLIANT PORTS", cell_format=non_compliant_fill_format)
+    worksheet.write_string("A6", "NON-COMPLIANT OPEN PORTS", cell_format=non_compliant_fill_format)
+    worksheet.write_string("A7", "COMPLIANCE %", cell_format=yellow_fill_format)
+    worksheet.write_string("A8", "PHYSICAL LOCATION", cell_format=yellow_fill_format)
+    worksheet.write_string("A9", "COUNTRY", cell_format=yellow_fill_format)
+
+    worksheet.conditional_format('A1:XFD1048576',
+                                 {'type': 'text',
+                                  'criteria': 'containing',
+                                  'value': 'non-compliant',
+                                  'format': non_compliant_fill_format})
+
+    worksheet.conditional_format('A1:XFD1048576',
+                                 {'type': 'text',
+                                  'criteria': 'containing',
+                                  'value': 'interface',
+                                  'format': interface_fill_format})
+    worksheet.set_row(6, None, percent_format)
 
 
 def generate_sheet3(writer, df):
@@ -72,7 +118,7 @@ def generate_sheet3(writer, df):
 
 def generate_sheet4(writer, df):
     """
-    Generates sheet 4 (compliance %). A bunch of Excel formulas
+    Generates sheet 4 (compliance %). A bunch of Excel formulas to summarize the data
     :param writer:
     :param df:
     :return:
@@ -82,29 +128,32 @@ def generate_sheet4(writer, df):
     # Get the xlsxwriter workbook and worksheet objects.
     workbook = writer.book
     worksheet = workbook.add_worksheet('Compliance %')
-    fill_format = workbook.add_format({"bg_color": "yellow"})
+    yellow_fill_format = workbook.add_format({"bg_color": "yellow"})
     bold_format = workbook.add_format({'bold': True})
 
-    worksheet.write_string("B1", "KE", cell_format=fill_format)
-    worksheet.write_string("B8", "KE", cell_format=fill_format)
-    worksheet.write_string("C1", "Total", cell_format=fill_format)
+    worksheet.write_string("B1", "KE", cell_format=yellow_fill_format)
+    worksheet.write_string("B8", "KE", cell_format=yellow_fill_format)
+    worksheet.write_string("C1", "Total", cell_format=yellow_fill_format)
 
     worksheet.write_string("A2", "Total Number of switches", cell_format=bold_format)
 
     # Total number of switches
     worksheet.write_formula("B2", "=COUNTIF('Audit Data'!I2: I{}, \"Kenya\")".format(no_of_hosts))
-    worksheet.write_number("C2", no_of_hosts-1)
+    worksheet.write_number("C2", no_of_hosts - 1)
 
     # fully compliant
     worksheet.write_formula("C3", "=COUNTIF('Audit Data'!G2:G{}, \"100%\")".format(no_of_hosts))
-    worksheet.write_formula("B3", "=COUNTIFS('Audit Data'!G2:G{}, \"100%\", 'Audit Data'!I2:I{}, \"Kenya\")".format(no_of_hosts, no_of_hosts))
+    worksheet.write_formula("B3", "=COUNTIFS('Audit Data'!G2:G{}, \"100%\", 'Audit Data'!I2:I{}, \"Kenya\")".format(
+        no_of_hosts, no_of_hosts))
 
     # partially compliant
     worksheet.write_formula("B4", "=B2-B3")
     worksheet.write_formula("C4", "=C2-C3")
 
     # fully non-compliant
-    worksheet.write_formula("B5", "=COUNTIFS('Audit Data'!G2:G{}, \"0%\", 'Audit Data'!I2:I{}, \"Kenya\")".format(no_of_hosts, no_of_hosts))
+    worksheet.write_formula("B5",
+                            "=COUNTIFS('Audit Data'!G2:G{}, \"0%\", 'Audit Data'!I2:I{}, \"Kenya\")".format(no_of_hosts,
+                                                                                                            no_of_hosts))
     worksheet.write_formula("C5", "=COUNTIF('Audit Data'!G2:G{}, \"0%\")".format(no_of_hosts))
 
     worksheet.write_string("A3", "No. of Switches that are fully compliant", cell_format=bold_format)
