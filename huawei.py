@@ -1,3 +1,4 @@
+import sys
 import pandas as pd
 from datetime import date
 
@@ -179,7 +180,19 @@ def generate_sheet4(writer, df):
 if __name__ == '__main__':
     # generate filename to be expected
     today = date.today()
-    filename = today.strftime("%Y%m%d_audit_row_hw_sw.csv")
+    # filename = today.strftime("%Y%m%d_audit_row_hw_sw.csv")
+
+    try:
+        filename = sys.argv[1]
+    except IndexError:
+        print("Forgot File Name?")
+        print("Syntax: python huawei.py \"xxxxx_audit_row_hw_sw.csv\" ")
+        exit(1)
+    except:
+        print("An Error Occurred!")
+        print("Correct Syntax: python huawei.py \"xxxxx_audit_row_hw_sw.csv\" ")
+        exit(1)
+
     # load data
     dataframe = load_csv(filename)
     wr = pd.ExcelWriter("Huawei NAC Report {}.xlsx".format(today), engine="xlsxwriter")
