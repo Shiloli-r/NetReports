@@ -1,4 +1,5 @@
 import pandas as pd
+import sys
 from datetime import date
 
 address = {
@@ -367,18 +368,30 @@ def generate_sheet5(writer):
 
 
 if __name__ == '__main__':
-    # generate filename to be expected
-    today = date.today()
-    # filename = today.strftime("%Y%m%d_audit_row_hw_sw.csv")
-    filename = "Data/cisco.xlsx"
+    # get filename from command line arguments
+
+    try:
+        filename = sys.argv[1]
+    except IndexError:
+        print("Forgot File Name?")
+        print("Syntax: python cisco.py \"NAC Analysis.xlsx\" ")
+        exit(1)
+    except:
+        print("An Error Occurred!")
+        print("Correct Syntax: python cisco.py \"NAC Analysis.xlsx\" ")
+        exit(1)
 
     # load data
-    dataframe = pd.read_excel('Data/cisco.xlsx')
+    dataframe = pd.read_excel(filename)
 
-    # Add 'Compliance % column' to dataframe
+    # create the output file
+    today = date.today()
     wr = pd.ExcelWriter("NAC analysis {}.xlsx".format(today.strftime('%d %m %Y')), engine="xlsxwriter")
+
     compliance = [(dataframe['TRUNK PORTS'][x] + dataframe['COMPLIANT PORTS'][x]) / dataframe['TOTAL PORTS'][x] for x in
                   range(dataframe.shape[0])]
+
+    # Add 'Compliance % column' to dataframe
     dataframe.insert(5, "Compliance %", compliance)
 
     generate_sheet1(wr, dataframe)
