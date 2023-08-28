@@ -2,8 +2,8 @@ import pandas as pd
 from datetime import date
 
 
-def load_csv(filename):
-    with open(filename) as f:
+def load_csv(file):
+    with open(file) as f:
         num_cols = max(len(line.split(',')) for line in f)  # get max number of columns in file
         f.seek(0)
         return pd.read_csv(f, names=range(num_cols), skiprows=[0])
