@@ -167,9 +167,18 @@ def format_headings_and_percentages(writer, sheet_name):
     worksheet.set_column(5, 5, None, percent_format)
 
 
+def adjust_col_sizes(df, writer, sheet_name):
+    for column in df:
+        column_length = max(df[column].astype(str).map(len).max(), 20)
+        col_idx = df.columns.get_loc(column)
+        writer.sheets[sheet_name].set_column(col_idx, col_idx, column_length)
+
+
 def generate_sheet1(writer, df):
     df.to_excel(writer, index=False, header=False, startrow=1, sheet_name='Audit Data')
     format_headings_and_percentages(wr, 'Audit Data')
+
+    adjust_col_sizes(df, writer, 'Audit Data')
 
 
 def generate_sheet2(writer, df):
@@ -220,10 +229,10 @@ def generate_sheet2(writer, df):
                                   'format': interface_fill_format})
     worksheet.set_row(5, None, percent_format)
 
+    adjust_col_sizes(df, writer, 'Non-Compliant Switches')
+
 
 def generate_sheet3(writer, df):
-    # drop all columns after "compliance %" column
-    df.drop(df.iloc[:, 6:], inplace=True, axis=1)
     df.drop(df.tail(1).index, inplace=True)  # drop last row (total)
     ipaddress = [df['HOST NAME'][x].split()[0] for x in range(df.shape[0])]
     key = [df['HOST NAME'][x].split()[2] for x in range(df.shape[0])]
@@ -264,6 +273,8 @@ def generate_sheet3(writer, df):
     worksheet.write_formula("I{}".format(last_row + 1),
                             "=(F{}+G{})/E{}".format(last_row + 1, last_row + 1, last_row + 1),
                             cell_format=percent_format)
+
+    adjust_col_sizes(df, writer, 'Compliance')
 
 
 def generate_sheet4(writer, df):
@@ -343,6 +354,17 @@ def generate_sheet4(writer, df):
     worksheet.write_formula("F11", "=SUM(B11:E11)")
     worksheet.write_formula("F12", "=SUM(B12:E12)")
 
+    adjust_col_sizes(df, writer, "Compliance per Country")
+
+
+def generate_sheet5(writer):
+    # Get the xlsxwriter workbook and worksheet objects.
+    workbook = writer.book
+    worksheet = workbook.add_worksheet("Unscanned")
+
+    yellow_fill_format = workbook.add_format({"bg_color": "#f0fc03", "bold": True})
+    worksheet.write_string("A1", "IP Address", cell_format=yellow_fill_format)
+
 
 if __name__ == '__main__':
     # generate filename to be expected
@@ -363,5 +385,6 @@ if __name__ == '__main__':
     generate_sheet2(wr, dataframe)
     generate_sheet3(wr, dataframe)
     generate_sheet4(wr, dataframe)
+    generate_sheet5(wr)
 
     wr.close()
